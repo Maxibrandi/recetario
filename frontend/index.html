@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Recetario Portable</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+<!--    <link rel="stylesheet" href="style.css">-->
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+    <nav class="bg-indigo-600 p-4 text-white shadow-lg mb-8">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">🍳 Mi Recetario</h1>
+            <span class="text-sm opacity-80">Gestión de Recetas</span>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 pb-12">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-1">
+                <div class="bg-white p-6 rounded-xl shadow-md sticky top-8">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800">Nueva Receta</h2>
+                    <form id="recipeForm" class="space-y-4">
+                        <input type="text" id="title" required class="border p-2 w-full rounded" placeholder="Nombre">
+                        <textarea id="ingredients" rows="3" required class="border p-2 w-full rounded" placeholder="Ingredientes..."></textarea>
+                        <textarea id="steps" rows="4" required class="border p-2 w-full rounded" placeholder="Pasos..."></textarea>
+                        <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700">Guardar</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2">
+                <h2 class="text-2xl font-bold mb-6 text-gray-800">Recetas Guardadas</h2>
+                <div id="recipeList" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
