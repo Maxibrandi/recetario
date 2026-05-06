@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:8080/recipes/';
+const API_URL = 'http://localhost:8000/recipes/';
 
 document.addEventListener('DOMContentLoaded', fetchRecipes);
 

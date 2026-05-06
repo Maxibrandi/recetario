@@ -1,0 +1,8 @@
+.venv
+venv
+ENV
+.git
+.idea
+__pycache__
+db.sqlite3
+postgres_data
