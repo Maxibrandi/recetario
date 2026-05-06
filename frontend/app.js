@@ -2,60 +2,123 @@ const API_URL = 'http://localhost:8000/recipes/';
 
 document.addEventListener('DOMContentLoaded', fetchRecipes);
 
-// Función para obtener recetas
+window.currentRecipes = [];
+
+// Función para alternar pestañas
+function switchTab(tabName) {
+    const addView = document.getElementById('view-add');
+    const searchView = document.getElementById('view-search');
+    const tabAdd = document.getElementById('tab-add');
+    const tabSearch = document.getElementById('tab-search');
+
+    if (tabName === 'add') {
+        addView.classList.remove('hidden');
+        searchView.classList.add('hidden');
+        tabAdd.className = 'px-3 py-1.5 text-sm font-medium rounded-lg bg-brand-700 transition';
+        tabSearch.className = 'px-3 py-1.5 text-sm font-medium rounded-lg bg-transparent hover:bg-brand-700 transition';
+    } else {
+        addView.classList.add('hidden');
+        searchView.classList.remove('hidden');
+        tabSearch.className = 'px-3 py-1.5 text-sm font-medium rounded-lg bg-brand-700 transition';
+        tabAdd.className = 'px-3 py-1.5 text-sm font-medium rounded-lg bg-transparent hover:bg-brand-700 transition';
+        renderSearchRecipes(window.currentRecipes);
+    }
+}
+
+// Obtener recetas de la API
 async function fetchRecipes() {
     try {
         const response = await fetch(API_URL);
         const recipes = await response.json();
-        renderRecipes(recipes);
+        window.currentRecipes = recipes;
     } catch (error) {
-        console.error('Error:', error);
-        document.getElementById('recipeList').innerHTML = `<p class="text-red-500">Error al conectar con la API en el puerto 8080.</p>`;
+        console.error('Error al obtener recetas:', error);
     }
 }
 
-// Función para renderizar en el HTML
-function renderRecipes(recipes) {
-    const list = document.getElementById('recipeList');
-    if (recipes.length === 0) {
-        list.innerHTML = '<p class="text-gray-500">No hay recetas.</p>';
-        return;
-    }
+// Formatear listas numeradas al pulsar Enter
+function handleListInput(event, element) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        const cursorPosition = element.selectionStart;
+        const textBefore = element.value.substring(0, cursorPosition);
+        const textAfter = element.value.substring(cursorPosition);
 
-    list.innerHTML = recipes.map(recipe => `
-        <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
-            <h3 class="text-lg font-bold text-indigo-700 mb-2">${recipe.title}</h3>
-            <p class="text-sm text-gray-600 mb-4 line-clamp-2">${recipe.ingredients}</p>
-            <div class="flex justify-between border-t pt-4">
-                <button onclick="deleteRecipe(${recipe.id})" class="text-red-400 text-xs">Eliminar</button>
-                <button class="bg-gray-100 px-2 py-1 rounded text-xs">Detalles</button>
-            </div>
-        </div>
-    `).join('');
+        // Contamos cuántas líneas hay hasta el cursor para saber el número
+        const lines = textBefore.split('\n');
+        const currentNumber = lines.length + 1;
+
+        element.value = textBefore + '\n' + currentNumber + '. ' + textAfter;
+        element.selectionStart = cursorPosition + 4;
+        element.selectionEnd = cursorPosition + 4;
+    }
 }
 
 // Guardar nueva receta
 document.getElementById('recipeForm').addEventListener('submit', async (e) => {
     e.preventDefault();
+
     const data = {
         title: document.getElementById('title').value,
-        ingredients: document.getElementById('ingredients').value,
-        steps: document.getElementById('steps').value
+        ingredientes: document.getElementById('ingredients').value,
+        descripcion: document.getElementById('steps').value,
+        tiempo_coccion: parseInt(document.getElementById('cookingTime').value) || null
     };
 
-    await fetch(API_URL, {
+    const response = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
     });
 
-    document.getElementById('recipeForm').reset();
-    fetchRecipes();
+    if (response.ok) {
+        alert('Receta guardada exitosamente.');
+        document.getElementById('recipeForm').reset();
+        fetchRecipes();
+    } else {
+        alert('Hubo un error al guardar la receta.');
+    }
 });
 
-// Eliminar receta
+// Filtrar recetas
+function filterRecipes() {
+    const query = document.getElementById('searchInput').value.toLowerCase();
+    const filtered = window.currentRecipes.filter(recipe =>
+        recipe.title.toLowerCase().includes(query) ||
+        recipe.ingredientes.toLowerCase().includes(query)
+    );
+    renderSearchRecipes(filtered);
+}
+
+// Mostrar resultados de búsqueda
+function renderSearchRecipes(recipes) {
+    const list = document.getElementById('searchList');
+    if (recipes.length === 0) {
+        list.innerHTML = '<p class="text-gray-400 text-sm text-center py-8">No se encontraron recetas.</p>';
+        return;
+    }
+    list.innerHTML = recipes.map(recipe => `
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h3 class="text-xl font-bold text-brand-600 mb-1">${recipe.title}</h3>
+                <p class="text-sm text-gray-500 mb-2"><strong>Ingredientes:</strong></p>
+                <p class="text-xs text-gray-600 whitespace-pre-line mb-3">${recipe.ingredientes}</p>
+                <p class="text-sm text-gray-700 whitespace-pre-line mb-4">${recipe.descripcion || 'Sin descripción'}</p>
+            </div>
+            <div class="flex flex-col items-end gap-2 self-end md:self-center">
+                <span class="text-xs bg-orange-50 px-3 py-1.5 rounded-full text-brand-700 font-medium">
+                    ⏱️ ${recipe.tiempo_coccion ? recipe.tiempo_coccion + ' min' : 'Sin tiempo'}
+                </span>
+                <button onclick="deleteRecipe(${recipe.id})" class="text-red-500 hover:text-red-700 text-xs font-semibold px-2">Eliminar</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Eliminar receta desde la vista de búsqueda
 async function deleteRecipe(id) {
-    if (!confirm('¿Borrar receta?')) return;
+    if (!confirm('¿Deseas eliminar esta receta?')) return;
     await fetch(`${API_URL}${id}`, { method: 'DELETE' });
     fetchRecipes();
+    switchTab('search');
 }

@@ -3,39 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Recetario Portable</title>
+    <title>Recetas de Maxi</title>
     <script src="https://cdn.tailwindcss.com"></script>
-<!--    <link rel="stylesheet" href="style.css">-->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#fff7ed',
+                            100: '#ffedd5',
+                            500: '#90B87B', // Verde principal
+                            600: '#90B87B', //
+                            700: '#c2410c',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-gray-50 min-h-screen flex flex-col text-gray-800">
 
-    <nav class="bg-indigo-600 p-4 text-white shadow-lg mb-8">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-bold">🍳 Mi Recetario</h1>
-            <span class="text-sm opacity-80">Gestión de Recetas</span>
+    <nav class="bg-brand-600 text-white shadow-md">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <span class="text-2xl">🧑🏻‍🍳</span>
+                <h1 class="text-xl font-bold tracking-tight">El Libro Sagrado</h1>
+            </div>
+            <div class="flex space-x-2">
+                <button id="tab-add" onclick="switchTab('add')" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-brand-700 transition">
+                    ➕ Nueva
+                </button>
+                <button id="tab-search" onclick="switchTab('search')" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-transparent hover:bg-brand-700 transition">
+                    🔍 Buscar
+                </button>
+            </div>
         </div>
     </nav>
 
-    <div class="container mx-auto px-4 pb-12">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="lg:col-span-1">
-                <div class="bg-white p-6 rounded-xl shadow-md sticky top-8">
-                    <h2 class="text-xl font-semibold mb-4 text-gray-800">Nueva Receta</h2>
-                    <form id="recipeForm" class="space-y-4">
-                        <input type="text" id="title" required class="border p-2 w-full rounded" placeholder="Nombre">
-                        <textarea id="ingredients" rows="3" required class="border p-2 w-full rounded" placeholder="Ingredientes..."></textarea>
-                        <textarea id="steps" rows="4" required class="border p-2 w-full rounded" placeholder="Pasos..."></textarea>
-                        <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700">Guardar</button>
-                    </form>
+    <main class="container mx-auto px-4 py-8 flex-grow max-w-2xl">
+
+        <div id="view-add" class="bg-white p-8 rounded-2xl shadow-sm border border-orange-100">
+            <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <span class="text-brand-500">📝</span> Agregar Nueva Receta
+            </h2>
+            <form id="recipeForm" class="space-y-5">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Título</label>
+                    <input type="text" id="title" required class="border border-gray-200 p-3 w-full rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition" placeholder="Ej: Tarta de verdura">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Ingredientes</label>
+                    <textarea id="ingredients" rows="4" required class="border border-gray-200 p-3 w-full rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition placeholder-gray-400" placeholder="1. Presiona enter para crear una lista numerada..." onkeydown="handleListInput(event, this)"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Descripción / Pasos</label>
+                    <textarea id="steps" rows="5" required class="border border-gray-200 p-3 w-full rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition placeholder-gray-400" placeholder="1. Presiona enter para crear una lista numerada..." onkeydown="handleListInput(event, this)"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Tiempo de cocción (minutos)</label>
+                    <input type="number" id="cookingTime" class="border border-gray-200 p-3 w-full rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition" placeholder="Ej: 30">
+                </div>
+                <button type="submit" class="w-full bg-brand-500 text-white py-3.5 rounded-xl hover:bg-brand-600 transition font-semibold shadow-sm">
+                    Guardar Receta
+                </button>
+            </form>
+        </div>
+
+        <div id="view-search" class="hidden space-y-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-orange-100">
+                <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span class="text-brand-500">🔍</span> Filtro de Búsqueda
+                </h2>
+                <div class="flex gap-3">
+                    <input type="text" id="searchInput" oninput="filterRecipes()" class="flex-grow border border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none transition" placeholder="Escribe para buscar por título o ingrediente...">
                 </div>
             </div>
 
-            <div class="lg:col-span-2">
-                <h2 class="text-2xl font-bold mb-6 text-gray-800">Recetas Guardadas</h2>
-                <div id="recipeList" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
-            </div>
+            <div id="searchList" class="grid grid-cols-1 gap-6"></div>
         </div>
-    </div>
+
+    </main>
+
+    <footer class="bg-white border-t border-gray-100 py-4 text-center text-xs text-gray-400">
+        Hecho por Maxi
+    </footer>
 
     <script src="app.js"></script>
 </body>
